@@ -20,8 +20,11 @@ namespace WpfApplication1
     /// </summary>
     public partial class MainWindow : Window
     {
-        private const string googleKey = "AJKnXv84fjrb0KIHawS0Tg"; //qosit: AIzaSyCxpQpq2wgBxZ0EyQ-ioSyRV2hS9ozp-mg //mia: AIzaSyCAXbsuXr2TOR4Q0fVUe4C4aDxnUW0F2wY //R: AJKnXv84fjrb0KIHawS0Tg
+        private const string googleKey = "AIzaSyBRjf1o-vbwugl0MTKN64M6lDo9K_Mtr5c"; //qosit: AIzaSyBRjf1o-vbwugl0MTKN64M6lDo9K_Mtr5c //mia: AIzaSyCAXbsuXr2TOR4Q0fVUe4C4aDxnUW0F2wY //R: AJKnXv84fjrb0KIHawS0Tg
+
         public SqC.SqlConnection connection = new SqC.SqlConnection(ConfigurationSettings.AppSettings["SQLconnectionString"].ToString());
+
+        public int connectorStart = 0;
     
         /// <summary>
         /// Instantiates new <see cref="MainWindow"/> control.
@@ -59,7 +62,7 @@ namespace WpfApplication1
                 command.Connection = connection;
                 command.CommandType = Dat.CommandType.Text;
                 //command.CommandText = string.Format("select origen.ID_NODO, origen.Latitud, origen.Longitud, destino.ID_NODO, destino.Latitud, destino.Longitud, matriz.KM,matriz.TIEMPO from dbo.Q_TRIPSMATRIX matriz, dbo.Q_ACCOUNTNODE origen, dbo.Q_ACCOUNTNODE destino where matriz.origen=origen.ID_NODO and matriz.destino=destino.ID_NODO");
-                command.CommandText = string.Format("select origen.ID_NODO, origen.Latitud, origen.Longitud, destino.ID_NODO, destino.Latitud, destino.Longitud, matriz.KM,matriz.TIEMPO from dbo.Q_TRIPSMATRIX matriz, dbo.Q_ACCOUNTNODE origen, dbo.Q_ACCOUNTNODE destino where matriz.origen = origen.ID_NODO and matriz.destino = destino.ID_NODO and origen.id_nodo = 'ES10_1000'");
+                command.CommandText = string.Format("select origen.ID_NODO, origen.Latitud, origen.Longitud, destino.ID_NODO, destino.Latitud, destino.Longitud, matriz.KM,matriz.TIEMPO from dbo.Q_TRIPSMATRIX matriz, dbo.Q_ACCOUNTNODE origen, dbo.Q_ACCOUNTNODE destino where matriz.origen = origen.ID_NODO and matriz.destino = destino.ID_NODO and origen.id_nodo = 'ES10_1000' and matriz.ID_CENTRO_SERVICIO = 'ES10_1000';");
                 
                 SqC.SqlDataReader reader = command.ExecuteReader();
 
@@ -107,9 +110,10 @@ namespace WpfApplication1
                             });
 
                         connectionIndex++;
-                        if (connectionIndex > 800)
-                            return;
+                        //if (connectionIndex > 800)
+                        //    return;
                     }
+                    connectorStart = this.ViewModel.Connectors.Count;
                 }
                 else
                 {

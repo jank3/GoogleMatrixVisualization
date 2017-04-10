@@ -13,7 +13,7 @@ namespace WpfApplication1.ViewModels
     /// </summary>
     public sealed class MainViewModel : ViewModelBase
     {
-        private const string googleMatrixApiKey = "AJKnXv84fjrb0KIHawS0Tg";  //qosIT: AIzaSyCxpQpq2wgBxZ0EyQ-ioSyRV2hS9ozp-mg //mia:"AIzaSyCEThXqC4NsDs_Lpa9OB12YHztsoGV5pvs" //R: "AJKnXv84fjrb0KIHawS0Tg"
+        private const string googleMatrixApiKey = "AIzaSyBRjf1o-vbwugl0MTKN64M6lDo9K_Mtr5c";  //qosIT: AIzaSyBRjf1o-vbwugl0MTKN64M6lDo9K_Mtr5c //mia:"AIzaSyCEThXqC4NsDs_Lpa9OB12YHztsoGV5pvs" //R: "AJKnXv84fjrb0KIHawS0Tg"
         private double scale = 1;
 
         /// <summary>
@@ -67,8 +67,7 @@ namespace WpfApplication1.ViewModels
         {
             // Send the request with origin as specified node
             // and destinations all other nodes except specified origin node
-            var origin = node;
-            var originCollection = new List<NodeObject>() { origin };
+            
             //***************************************************************************
             int TotalIEnum = this.Nodes.Count();
             int buclesorigins = 0;
@@ -86,11 +85,14 @@ namespace WpfApplication1.ViewModels
             
             for (int i = 1; i <= buclesorigins; i++)
             {
+                var origin = node;
+                var originCollection = new List<NodeObject>() { origin };
+
                 var weights = await new GoogleMatrixApiClient(googleMatrixApiKey).RequestMatrix(
                 originCollection.Select(n => n.ToString()),
                 this.Nodes.Skip(25 * (i - 1)).Take(25).Except(originCollection).Select(n => n.ToString()));
 
-
+                //System.Threading.Thread.Sleep(200);
                 // Ignore if nothing returned
                 if (weights.Count() == 0) return;
 
@@ -106,12 +108,44 @@ namespace WpfApplication1.ViewModels
                     this.Connectors.Add(new ConnectorObject
                     {
                         StartNode = origin,
-                        EndNode = this.Nodes[connectionIndex],
+                        EndNode = this.Nodes[connectionIndex+(25 * (i - 1))],
                         Text = (weight.ElementAt(connectionIndex) / 60.0).ToString("0.00") + "'"
                         //Text = string.Format("{0}", (weight.ElementAt(connectionIndex)))
                     });
                 }
             }
+            for (int i = 1; i <= buclesorigins; i++)
+            {
+                var origin = node;
+                var originCollection = new List<NodeObject>() { origin };
+
+                var weights = await new GoogleMatrixApiClient(googleMatrixApiKey).RequestMatrix( 
+                                this.Nodes.Skip(25 * (i - 1)).Take(25).Except(originCollection).Select(n => n.ToString()),
+                                originCollection.Select(n => n.ToString()));
+
+                //System.Threading.Thread.Sleep(200);
+                // Ignore if nothing returned
+                if (weights.Count() == 0) return;
+
+                // There should only one row in response so we'll use that
+                var weight = weights.First();
+                for (var connectionIndex = 0; connectionIndex < weight.Count(); connectionIndex++)
+                {
+                    // Ignore 0 weight values
+                    if (weight.ElementAt(connectionIndex) == 0) continue;
+
+                    // Create connector between origin node and
+                    // destination node where text is travel duration in minutes
+                    this.Connectors.Add(new ConnectorObject
+                    {
+                        StartNode = origin,
+                        EndNode = this.Nodes[connectionIndex + (25 * (i - 1))],
+                        Text = (weight.ElementAt(connectionIndex) / 60.0).ToString("0.00") + "'"
+                        //Text = string.Format("{0}", (weight.ElementAt(connectionIndex)))
+                    });
+                }
+            }
+            System.Diagnostics.Debug.WriteLine(this.Connectors.Count.ToString());
         }
     }
 }

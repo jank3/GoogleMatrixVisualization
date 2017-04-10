@@ -12,8 +12,8 @@ namespace WpfApplication1.Google
     /// </summary>
     public class GoogleMatrixApiClient
     {
-        private const string requestUrlTemplate = "https://maps.googleapis.com/maps/api/distancematrix/json?origins={0}&destinations={1}&mode=driving&language=es&key={2}";
         //private const string requestUrlTemplate = "https://maps.googleapis.com/maps/api/distancematrix/json?origins={0}&destinations={1}&language=es&key={2}";
+        private const string requestUrlTemplate = "https://maps.googleapis.com/maps/api/distancematrix/json?origins={0}&destinations={1}&mode=driving&language=es&key={2}";
         private string key;
 
         //"https://maps.googleapis.com/maps/api/distancematrix/xml?origins={0}&destinations={1}&mode=driving&key="
