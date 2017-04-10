@@ -5,12 +5,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:m="clr-namespace:Microsoft.Maps.MapControl.WPF;assembly=Microsoft.Maps.MapControl.WPF" 
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525"
+        Title="MathITWindow" Height="700" Width="1050"
         x:Name="View">
     
     <Grid>
-        <m:Map CredentialsProvider="ArMXrr4Ik3XUxCKmTU0OgH_GQXKdlc1Qe_XYkDM7n-TW5cDKXW_zkUCYQCqnixqD" 
-               Center="45.800836, 15.957856" ZoomLevel="14"
+        <m:Map CredentialsProvider="Hhf1tYZNKZMoAHP5pOXd~I30WZ7rl6He91PzzZOqFOQ~AnwaLatTNVNYCoMTuuNTp68SotHda8d7e8bwqw2ILvIm_187B03ivNtOk6PXTolD" 
+               Center="42.7661, -1.661573" ZoomLevel="14"
                x:Name="Map" />
     </Grid>
 </Window>

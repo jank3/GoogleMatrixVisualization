@@ -13,7 +13,7 @@ namespace WpfApplication1.ViewModels
     /// </summary>
     public sealed class MainViewModel : ViewModelBase
     {
-        private const string googleMatrixApiKey = "<YOUR KEY HERE>";
+        private const string googleMatrixApiKey = "AJKnXv84fjrb0KIHawS0Tg";  //qosIT: AIzaSyCxpQpq2wgBxZ0EyQ-ioSyRV2hS9ozp-mg //mia:"AIzaSyCEThXqC4NsDs_Lpa9OB12YHztsoGV5pvs" //R: "AJKnXv84fjrb0KIHawS0Tg"
         private double scale = 1;
 
         /// <summary>
@@ -69,28 +69,48 @@ namespace WpfApplication1.ViewModels
             // and destinations all other nodes except specified origin node
             var origin = node;
             var originCollection = new List<NodeObject>() { origin };
-            var weights = await new GoogleMatrixApiClient(googleMatrixApiKey).RequestMatrix(
-                originCollection.Select(n => n.ToString()),
-                this.Nodes.Except(originCollection).Select(n => n.ToString()));
+            //***************************************************************************
+            int TotalIEnum = this.Nodes.Count();
+            int buclesorigins = 0;
+            int resto25origins = TotalIEnum % 25;
 
-            // Ignore if nothing returned
-            if (weights.Count() == 0) return;
-
-            // There should only one row in response so we'll use that
-            var weight = weights.First();
-            for (var connectionIndex = 0; connectionIndex < weight.Count(); connectionIndex++)
+            if (resto25origins != 0)
             {
-                // Ignore 0 weight values
-                if (weight.ElementAt(connectionIndex) == 0) continue;
+                buclesorigins = TotalIEnum / 25;
+            }
+            else
+            {
+                buclesorigins = TotalIEnum / 25 + 1;
+            }
+            //***************************************************************************
+            
+            for (int i = 1; i <= buclesorigins; i++)
+            {
+                var weights = await new GoogleMatrixApiClient(googleMatrixApiKey).RequestMatrix(
+                originCollection.Select(n => n.ToString()),
+                this.Nodes.Skip(25 * (i - 1)).Take(25).Except(originCollection).Select(n => n.ToString()));
 
-                // Create connector between origin node and
-                // destination node where text is travel duration in minutes
-                this.Connectors.Add(new ConnectorObject
+
+                // Ignore if nothing returned
+                if (weights.Count() == 0) return;
+
+                // There should only one row in response so we'll use that
+                var weight = weights.First();
+                for (var connectionIndex = 0; connectionIndex < weight.Count(); connectionIndex++)
                 {
-                    StartNode = origin,
-                    EndNode = this.Nodes[connectionIndex],
-                    Text = (weight.ElementAt(connectionIndex) / 60.0).ToString("0.00")
-                });
+                    // Ignore 0 weight values
+                    if (weight.ElementAt(connectionIndex) == 0) continue;
+
+                    // Create connector between origin node and
+                    // destination node where text is travel duration in minutes
+                    this.Connectors.Add(new ConnectorObject
+                    {
+                        StartNode = origin,
+                        EndNode = this.Nodes[connectionIndex],
+                        Text = (weight.ElementAt(connectionIndex) / 60.0).ToString("0.00") + "'"
+                        //Text = string.Format("{0}", (weight.ElementAt(connectionIndex)))
+                    });
+                }
             }
         }
     }

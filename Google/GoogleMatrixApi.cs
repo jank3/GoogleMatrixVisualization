@@ -12,10 +12,11 @@ namespace WpfApplication1.Google
     /// </summary>
     public class GoogleMatrixApiClient
     {
-        private const string requestUrlTemplate = "https://maps.googleapis.com/maps/api/distancematrix/json?origins={0}&destinations={1}&key={2}";
+        private const string requestUrlTemplate = "https://maps.googleapis.com/maps/api/distancematrix/json?origins={0}&destinations={1}&mode=driving&language=es&key={2}";
+        //private const string requestUrlTemplate = "https://maps.googleapis.com/maps/api/distancematrix/json?origins={0}&destinations={1}&language=es&key={2}";
         private string key;
 
-
+        //"https://maps.googleapis.com/maps/api/distancematrix/xml?origins={0}&destinations={1}&mode=driving&key="
         /// <summary>
         /// Instantiates the <see cref="GoogleMatrixApiClient"/>.
         /// </summary>
@@ -41,6 +42,7 @@ namespace WpfApplication1.Google
         /// First dimension contains origins in order as given.
         /// Second dimension contains duration value from origin to destination in order as given.
         /// </returns>
+        /// 
         public async Task<IEnumerable<IEnumerable<int>>> RequestMatrix(IEnumerable<string> origins, IEnumerable<string> destinations)
         {
             using (var client = new HttpClient())
@@ -60,6 +62,7 @@ namespace WpfApplication1.Google
                 return data.rows.Select(r => r.elements.Select(e => e.duration.value));
             }
         }
+       
 
         private class GoogleResponse
         {

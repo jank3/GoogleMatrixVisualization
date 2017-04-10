@@ -9,6 +9,9 @@ using WpfApplication1.Diagram;
 using WpfApplication1.Map;
 using WpfApplication1.Providers;
 using WpfApplication1.ViewModels;
+using Dat = System.Data;            // System.Data.dll  
+using SqC = System.Data.SqlClient;  // System.Data.dll  
+using System.Configuration;
 
 namespace WpfApplication1
 {
@@ -17,8 +20,9 @@ namespace WpfApplication1
     /// </summary>
     public partial class MainWindow : Window
     {
-        private const string googleKey = "AIzaSyCZuYOphggEHKWTR69z5tDMrErKENtX2p0";
-
+        private const string googleKey = "AJKnXv84fjrb0KIHawS0Tg"; //qosit: AIzaSyCxpQpq2wgBxZ0EyQ-ioSyRV2hS9ozp-mg //mia: AIzaSyCAXbsuXr2TOR4Q0fVUe4C4aDxnUW0F2wY //R: AJKnXv84fjrb0KIHawS0Tg
+        public SqC.SqlConnection connection = new SqC.SqlConnection(ConfigurationSettings.AppSettings["SQLconnectionString"].ToString());
+    
         /// <summary>
         /// Instantiates new <see cref="MainWindow"/> control.
         /// </summary>
@@ -32,12 +36,86 @@ namespace WpfApplication1
             // Initialize UI
             this.InitializeComponent();
 
+            // Loading DB distance matrix
+            this.LoadDBConnectors();
+
             // Populate UI from data context
-            this.AddConnectors(this.ViewModel.Connectors);
-            this.AddNodes(this.ViewModel.Nodes);
+  //          this.AddConnectors(this.ViewModel.Connectors);
+  //          this.AddNodes(this.ViewModel.Nodes);
 
             // Attach to events
             this.Map.PreviewMouseDown += Map_PreviewMouseDown;
+        }
+
+        private void LoadDBConnectors()
+        {
+            connection.Open();
+            //this.WriteLine("SQL LoadDBConnectors : Connected successfully to mathip-chep-sql1.");
+            System.Diagnostics.Debug.WriteLine("SQL LoadDBConnectors : Connected successfully to mathip-chep-sql1.");
+
+            using (var command = new SqC.SqlCommand())
+            {
+
+                command.Connection = connection;
+                command.CommandType = Dat.CommandType.Text;
+                //command.CommandText = string.Format("select origen.ID_NODO, origen.Latitud, origen.Longitud, destino.ID_NODO, destino.Latitud, destino.Longitud, matriz.KM,matriz.TIEMPO from dbo.Q_TRIPSMATRIX matriz, dbo.Q_ACCOUNTNODE origen, dbo.Q_ACCOUNTNODE destino where matriz.origen=origen.ID_NODO and matriz.destino=destino.ID_NODO");
+                command.CommandText = string.Format("select origen.ID_NODO, origen.Latitud, origen.Longitud, destino.ID_NODO, destino.Latitud, destino.Longitud, matriz.KM,matriz.TIEMPO from dbo.Q_TRIPSMATRIX matriz, dbo.Q_ACCOUNTNODE origen, dbo.Q_ACCOUNTNODE destino where matriz.origen = origen.ID_NODO and matriz.destino = destino.ID_NODO and origen.id_nodo = 'ES10_1000'");
+                
+                SqC.SqlDataReader reader = command.ExecuteReader();
+
+                bool creaPrimerNodo = true;
+
+                if (reader.HasRows)
+                {
+                    int connectionIndex = 0;
+                    while (reader.Read())
+                    {
+                        //System.Diagnostics.Debug.WriteLine(reader.GetString(0) + "\t" + reader.GetString(1) + "\t" + reader.GetString(2) + "\t" + reader.GetString(3));
+
+                        var node = new NodeObject()
+                        {
+                            X = float.Parse(reader.GetString(1), System.Globalization.NumberStyles.Float, new System.Globalization.CultureInfo( "en-US" )),//location.Latitude
+                            Y = float.Parse(reader.GetString(2), System.Globalization.NumberStyles.Float, new System.Globalization.CultureInfo( "en-US" )) //location.Longitude
+                        };
+
+                        if (creaPrimerNodo)
+                        {
+                            this.ViewModel.Nodes.Add(node);
+                            creaPrimerNodo = false;
+                        }
+
+                        var origin = node;
+                        var originCollection = new List<NodeObject>() { origin };
+
+                        var node2 = new NodeObject()
+                        {
+                            X = float.Parse(reader.GetString(4), System.Globalization.NumberStyles.Float, new System.Globalization.CultureInfo( "en-US" )), //location.Latitude
+                            Y = float.Parse(reader.GetString(5), System.Globalization.NumberStyles.Float, new System.Globalization.CultureInfo( "en-US" ))  //location.Longitude
+                        };
+                        var destino = node2;
+                        var destinoCollection = new List<NodeObject>() { destino };
+
+                        this.ViewModel.Nodes.Add(node2);
+
+                        this.ViewModel.Connectors.Add(new ConnectorObject
+                           {
+                                StartNode = origin,
+                                //EndNode = this.ViewModel.Nodes[connectionIndex],
+                                EndNode = destino,
+                                Text = (float.Parse(reader.GetString(7), System.Globalization.NumberStyles.Float, new System.Globalization.CultureInfo( "en-US" )) / 60.0).ToString("0.00") + "'"
+                                //Text = string.Format("{0}", (weight.ElementAt(connectionIndex)))
+                            });
+
+                        connectionIndex++;
+                        if (connectionIndex > 800)
+                            return;
+                    }
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("Nothing to LOGS");
+                }
+            }
         }
 
         /// <summary>
