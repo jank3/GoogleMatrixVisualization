@@ -12,26 +12,42 @@ using WpfApplication1.ViewModels;
 using Dat = System.Data;            // System.Data.dll  
 using SqC = System.Data.SqlClient;  // System.Data.dll  
 using System.Configuration;
+using System.Globalization;
+using System;
+
 
 namespace WpfApplication1
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
+
     public partial class MainWindow : Window
     {
         private const string googleKey = "AIzaSyBRjf1o-vbwugl0MTKN64M6lDo9K_Mtr5c"; //qosit: AIzaSyBRjf1o-vbwugl0MTKN64M6lDo9K_Mtr5c //mia: AIzaSyCAXbsuXr2TOR4Q0fVUe4C4aDxnUW0F2wY //R: AJKnXv84fjrb0KIHawS0Tg
 
         public SqC.SqlConnection connection = new SqC.SqlConnection(ConfigurationSettings.AppSettings["SQLconnectionString"].ToString());
 
-        public int connectorStart = 0;
-    
+        //public partial class GetSelectedNodo
+        //{
+        public string SelectedNodo
+        {
+            get
+            {
+                return this.tbNodo.Text.ToString();
+
+            }
+        }
+        // }
+
+
         /// <summary>
         /// Instantiates new <see cref="MainWindow"/> control.
         /// </summary>
         public MainWindow()
         {
             // Initialize data context
+            // this.tbNodo.Text = "";
             this.DataContext = ViewModelProvider.MainViewModel;
             this.ViewModel.Nodes.CollectionChanged += Nodes_CollectionChanged;
             this.ViewModel.Connectors.CollectionChanged += Connectors_CollectionChanged;
@@ -43,8 +59,8 @@ namespace WpfApplication1
             this.LoadDBConnectors();
 
             // Populate UI from data context
-  //          this.AddConnectors(this.ViewModel.Connectors);
-  //          this.AddNodes(this.ViewModel.Nodes);
+            //          this.AddConnectors(this.ViewModel.Connectors);
+            //          this.AddNodes(this.ViewModel.Nodes);
 
             // Attach to events
             this.Map.PreviewMouseDown += Map_PreviewMouseDown;
@@ -63,7 +79,7 @@ namespace WpfApplication1
                 command.CommandType = Dat.CommandType.Text;
                 //command.CommandText = string.Format("select origen.ID_NODO, origen.Latitud, origen.Longitud, destino.ID_NODO, destino.Latitud, destino.Longitud, matriz.KM,matriz.TIEMPO from dbo.Q_TRIPSMATRIX matriz, dbo.Q_ACCOUNTNODE origen, dbo.Q_ACCOUNTNODE destino where matriz.origen=origen.ID_NODO and matriz.destino=destino.ID_NODO");
                 command.CommandText = string.Format("select origen.ID_NODO, origen.Latitud, origen.Longitud, destino.ID_NODO, destino.Latitud, destino.Longitud, matriz.KM,matriz.TIEMPO from dbo.Q_TRIPSMATRIX matriz, dbo.Q_ACCOUNTNODE origen, dbo.Q_ACCOUNTNODE destino where matriz.origen = origen.ID_NODO and matriz.destino = destino.ID_NODO and origen.id_nodo = 'ES10_1000' and matriz.ID_CENTRO_SERVICIO = 'ES10_1000';");
-                
+
                 SqC.SqlDataReader reader = command.ExecuteReader();
 
                 bool creaPrimerNodo = true;
@@ -77,8 +93,9 @@ namespace WpfApplication1
 
                         var node = new NodeObject()
                         {
-                            X = float.Parse(reader.GetString(1), System.Globalization.NumberStyles.Float, new System.Globalization.CultureInfo( "en-US" )),//location.Latitude
-                            Y = float.Parse(reader.GetString(2), System.Globalization.NumberStyles.Float, new System.Globalization.CultureInfo( "en-US" )) //location.Longitude
+                            X = float.Parse(reader.GetString(1), System.Globalization.NumberStyles.Float, new System.Globalization.CultureInfo("en-US")),//location.Latitude
+                            Y = float.Parse(reader.GetString(2), System.Globalization.NumberStyles.Float, new System.Globalization.CultureInfo("en-US")), //location.Longitude
+                            ID_NODO = string.Format("{0}", reader.GetString(0))
                         };
 
                         if (creaPrimerNodo)
@@ -92,8 +109,9 @@ namespace WpfApplication1
 
                         var node2 = new NodeObject()
                         {
-                            X = float.Parse(reader.GetString(4), System.Globalization.NumberStyles.Float, new System.Globalization.CultureInfo( "en-US" )), //location.Latitude
-                            Y = float.Parse(reader.GetString(5), System.Globalization.NumberStyles.Float, new System.Globalization.CultureInfo( "en-US" ))  //location.Longitude
+                            X = float.Parse(reader.GetString(4), System.Globalization.NumberStyles.Float, new System.Globalization.CultureInfo("en-US")), //location.Latitude
+                            Y = float.Parse(reader.GetString(5), System.Globalization.NumberStyles.Float, new System.Globalization.CultureInfo("en-US")),  //location.Longitude
+                            ID_NODO = string.Format("{0}", reader.GetString(3))
                         };
                         var destino = node2;
                         var destinoCollection = new List<NodeObject>() { destino };
@@ -101,19 +119,20 @@ namespace WpfApplication1
                         this.ViewModel.Nodes.Add(node2);
 
                         this.ViewModel.Connectors.Add(new ConnectorObject
-                           {
-                                StartNode = origin,
-                                //EndNode = this.ViewModel.Nodes[connectionIndex],
-                                EndNode = destino,
-                                Text = (float.Parse(reader.GetString(7), System.Globalization.NumberStyles.Float, new System.Globalization.CultureInfo( "en-US" )) / 60.0).ToString("0.00") + "'"
-                                //Text = string.Format("{0}", (weight.ElementAt(connectionIndex)))
-                            });
+                        {
+                            StartNode = origin,
+                            //EndNode = this.ViewModel.Nodes[connectionIndex],
+                            EndNode = destino,
+                            Text = (float.Parse(reader.GetString(7), System.Globalization.NumberStyles.Float, new System.Globalization.CultureInfo("en-US")) / 01.0).ToString("0.000000", CultureInfo.CreateSpecificCulture("en-US"))
+                            //Text = string.Format("{0}", (weight.ElementAt(connectionIndex)))
+                        });
 
                         connectionIndex++;
                         //if (connectionIndex > 800)
                         //    return;
                     }
-                    connectorStart = this.ViewModel.Connectors.Count;
+                    this.ViewModel.connectorStart = this.ViewModel.Connectors.Count;
+
                 }
                 else
                 {
@@ -191,5 +210,75 @@ namespace WpfApplication1
         /// Gets the main view model.
         /// </summary>
         public MainViewModel ViewModel => this.DataContext as MainViewModel;
+
+        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(tbNodo.Text))
+                MessageBox.Show("Please entry a Valid ID_NODE!");
+            else
+            {
+                if (this.ViewModel.connectorStart == this.ViewModel.Connectors.Count)
+                    MessageBox.Show("There is not new Node to insert!");
+                else
+                {
+                    MessageBox.Show(string.Format("Weights = {0}, Nodes = {1}, Connectors = {2}",this.ViewModel.weightTotal,this.ViewModel.Nodes.Count,this.ViewModel.Connectors.Count));
+                   // InsertDBMatrixNewNode();
+                }
+            }
+        }
+
+        private void InsertDBMatrixNewNode()
+        {
+            try
+            {
+                var connection = new SqC.SqlConnection(ConfigurationSettings.AppSettings["SQLconnectionString"].ToString());
+                connection.Open();
+
+                using (var commandInsert = new SqC.SqlCommand())
+                {
+                    int InsertOK;
+                    int seq = 0;
+
+                    commandInsert.Connection = connection;
+                    commandInsert.CommandType = Dat.CommandType.Text;
+
+                    System.Diagnostics.Debug.WriteLine("Writing SQL MATRIX New Node");
+
+
+                    foreach (var connector in  this.ViewModel.Connectors.Skip(this.ViewModel.connectorStart).Take(this.ViewModel.Connectors.Count - this.ViewModel.connectorStart))
+                    {
+                        commandInsert.CommandText = string.Format("INSERT INTO dbo.Q_TRIPSMATRIX (ID_CENTRO_SERVICIO, FECHA_HORA_ENVIO, ORIGEN, DESTINO, KM, TIEMPO) VALUES ('{0}','{1}','{2}','{3}','-','{4}')",
+                        "XXX", seq.ToString(), connector.StartNode.ID_NODO, connector.EndNode.ID_NODO, connector.Text.Substring(0, 8));
+
+                        InsertOK = commandInsert.ExecuteNonQuery();
+
+                        if (InsertOK <= 0)
+                        {
+                            System.Diagnostics.Debug.WriteLine("Error writing SQL MATRIX : {0},{1}", connector.StartNode.ToString(), connector.EndNode.ToString());
+                        }
+                        seq++;
+                        if (seq > 658)
+                            seq = seq;
+                    }
+                    commandInsert.Dispose();
+                    // connection.Close();
+                }
+                //System.Diagnostics.Debug.WriteLine(this.Connectors.Count.ToString());
+            }
+            catch (Exception exc)
+            {
+                Console.WriteLine("Error writing SQL MATRIX");
+                Console.WriteLine(exc.ToString());
+                Console.Error.WriteLine();
+                System.Environment.Exit(-825);
+                throw exc;
+            }
+
+        }
     }
 }

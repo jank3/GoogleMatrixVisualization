@@ -7,10 +7,13 @@
         mc:Ignorable="d"
         Title="MathITWindow" Height="700" Width="1050"
         x:Name="View">
-    
+
     <Grid>
         <m:Map CredentialsProvider="Hhf1tYZNKZMoAHP5pOXd~I30WZ7rl6He91PzzZOqFOQ~AnwaLatTNVNYCoMTuuNTp68SotHda8d7e8bwqw2ILvIm_187B03ivNtOk6PXTolD" 
                Center="42.7661, -1.661573" ZoomLevel="14"
-               x:Name="Map" />
+               x:Name="Map" Margin="3,27,-2.8,0.4" />
+        <Label Content="ID_NODO" HorizontalAlignment="Left" Margin="45,0,0,0" VerticalAlignment="Top" Height="24"/>
+        <TextBox x:Name="tbNodo" HorizontalAlignment="Left" Height="20" Margin="110,4,0,0" TextWrapping="Wrap" Text="{Binding Path=SelectedNodo}" VerticalAlignment="Top" Width="170" TextChanged="TextBox_TextChanged" />
+        <Button Content="ToSQL" HorizontalAlignment="Left" Margin="290,5,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click"/>
     </Grid>
 </Window>

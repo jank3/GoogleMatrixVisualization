@@ -10,7 +10,21 @@ namespace WpfApplication1.Diagram
         private Pushpin pin;
         private double x;
         private double y;
+        private string id_nodo = "";
 
+        // Declare a Name property of type string:
+        public string ID_NODO
+        {
+            get
+            {
+                return this.id_nodo;
+            }
+            set
+            {
+                this.id_nodo = value;
+                this.OnPropertyChanged(nameof(this.ID_NODO));
+            }
+        }
 
         /// <summary>
         /// Gets or sets the X coordinate of the node.

@@ -4,6 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.Net;
+
+using System.Text;
+using System.IO;
+
 
 namespace WpfApplication1.Google
 {
@@ -43,7 +48,8 @@ namespace WpfApplication1.Google
         /// Second dimension contains duration value from origin to destination in order as given.
         /// </returns>
         /// 
-        public async Task<IEnumerable<IEnumerable<int>>> RequestMatrix(IEnumerable<string> origins, IEnumerable<string> destinations)
+        public IEnumerable<IEnumerable<int>>
+            RequestMatrix(IEnumerable<string> origins, IEnumerable<string> destinations)
         {
             using (var client = new HttpClient())
             {
@@ -54,12 +60,60 @@ namespace WpfApplication1.Google
                     this.key);
 
                 // Send the request and deserialize the response
-                var response = await client.GetAsync(requestUrl);
-                var responseJson = await response.Content.ReadAsStringAsync();
-                var data = JsonConvert.DeserializeObject<GoogleResponse>(responseJson);
+                //var response = await client.GetAsync(requestUrl);
+                //var responseJson = await response.Content.ReadAsStringAsync();
+                //var data = JsonConvert.DeserializeObject<GoogleResponse>(responseJson);
+
+                try
+                {
+                  //  int alongroaddis = Convert.ToInt32(ConfigurationManager.AppSettings["alongroad"].ToString());
+                  //  string keyString = ConfigurationManager.AppSettings["keyString"].ToString(); // passing API key
+                  //  string clientID = ConfigurationManager.AppSettings["clientID"].ToString(); // passing client id
+
+                  //  string urlRequest = "";
+
+                    //string travelMode = "Driving"; //Driving, Walking, Bicycling, Transit.
+                    //string urlRequest = @"http://maps.googleapis.com/maps/api/distancematrix/json?origins=" + "source" + "&destinations=" + "Destination" + "&mode='" + travelMode + "'&sensor=false";
+
+                    //if (keyString.ToString() != "")
+                    //{
+                    //    urlRequest += "&client=" + clientID;
+                    //    urlRequest = Sign(urlRequest, keyString); // request with api key and client id
+                    //}
+
+                    // WebRequest request = WebRequest.Create(urlRequest);
+                    WebRequest request = WebRequest.Create(requestUrl);
+                    request.Method = "POST";
+                    string postData = "This is a test that posts this string to a Web server.";
+                    byte[] byteArray = Encoding.UTF8.GetBytes(postData);
+
+                    request.ContentType = "application/x-www-form-urlencoded";
+                    request.ContentLength = byteArray.Length;
+
+                    Stream dataStream = request.GetRequestStream();
+                    dataStream.Write(byteArray, 0, byteArray.Length);
+                    dataStream.Close();
+
+                    WebResponse Wresponse = request.GetResponse();
+                    dataStream = Wresponse.GetResponseStream();
+
+                    StreamReader reader = new StreamReader(dataStream);
+                    string resp = reader.ReadToEnd();
+                    var data2 = JsonConvert.DeserializeObject<GoogleResponse>(resp);
+                    
+                    reader.Close();
+                    dataStream.Close();
+                    Wresponse.Close();
+                    
+                    return data2.rows.Select(r => r.elements.Select(e => e.duration.value)); ;
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
 
                 // Return only duration values
-                return data.rows.Select(r => r.elements.Select(e => e.duration.value));
+                //return data.rows.Select(r => r.elements.Select(e => e.duration.value));
             }
         }
        
